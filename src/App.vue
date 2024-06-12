@@ -3,6 +3,7 @@ import { ref } from "vue";
 
 const search = ref("");
 const searchResults = ref([]);
+const selectedLocation = ref(null);
 const currentWeather = ref(null);
 const currentWeatherUnits = ref(null);
 
@@ -28,6 +29,7 @@ const handleSearch = () => {
 };
 
 const handleSelectLocation = (location) => {
+  selectedLocation.value = location;
   searchResults.value = [];
   fetch(
     `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m`,
@@ -66,6 +68,7 @@ const degreeToCardinalDirection = (degree) => {
         class="border border-minimal-border p-1"
         type="text"
         v-model="search"
+        v-on:keyup.enter="handleSearch"
       />
       <button
         class="rounded-sm bg-primary-action px-2 py-1 text-white"
@@ -76,15 +79,21 @@ const degreeToCardinalDirection = (degree) => {
     </div>
 
     <div v-for="result in searchResults" :key="result.id">
-      <span>
+      <button
+        class="w-[350px] border border-minimal-border p-1 hover:bg-slate-100"
+        @click="handleSelectLocation(result)"
+      >
         {{ result.name }}, {{ result.admin1 }}{{ result.admin1 ? "," : "" }}
-        {{ result.country }}, latitude: {{ result.latitude }}, longitude:
-        {{ result.longitude }}
-      </span>
-      <button @click="handleSelectLocation(result)">Select</button>
+        {{ result.country }}
+      </button>
     </div>
 
     <div v-if="currentWeather">
+      <p>
+        {{
+          `Location: ${selectedLocation.name}, ${selectedLocation.admin1}, ${selectedLocation.country}`
+        }}
+      </p>
       <p>
         {{
           ` Current temperature: ${currentWeather.temperature_2m} ${currentWeatherUnits.temperature_2m}`
